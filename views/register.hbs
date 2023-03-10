@@ -8,13 +8,14 @@
 </head>
 <body>
     <h1>Register a new user!</h1>
-    <form method="post" action="register">
+    <form method="post" action="/admin/register">
         Name : <input type="text" name="txtName">
         <br>
         Role: 
         <select name="Role">
-            <option value="Admin">Admin</option>
-            <option value="Tester">Tester</option>
+            {{#each roles}}
+            <option value="{{name}}">{{name}}</option>
+            {{/each}}
         </select>
         <br>
         Password:

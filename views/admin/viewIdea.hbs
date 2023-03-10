@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href ="style.css"/>
+    <title>View All Categories</title>
+</head>
+<body>
+    <h1>FPT University</h1>
+    <div class = "bar">
+        <a href="/admin/home">Menu</a>
+        <a href="/admin/viewIdea">View Idea</a>
+        <a href="/admin/viewAccount">View Account</a>
+        <a href="/logout">Logout</a> 
+    </div>
+    <h2>View all Ideas</h1>
+    <ul>
+        <center>
+        <table border="1" cellspacing="1">
+        <thead>
+            <tr>
+                <th>Idea</th>
+                <th>Author Name</th>
+            </tr>
+            {{#each ideas}}
+            <tr>
+                <td>
+                    {{idea}}  
+                </td>
+                <td>
+                    {{author}}
+                </td>
+            </tr>
+            {{/each}}
+        </thead>
+        </table>
+        </center>
+    </ul>
+</body>
+</html>

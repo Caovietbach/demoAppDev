@@ -38,7 +38,33 @@ async function checkUserLogin(nameI) {
     }
 }
 
+async function getAllDocumentFromCollection(collectionName) {
+    const dbo = await getDB();
+    const results = await dbo.collection(collectionName).find().toArray();
+    return results;
+}
+
+async function getAccount(){
+    let dbo = await getDB();
+    let result = await dbo.collection(USER_TABLE_NAME).find().toArray();
+    return result;
+}
+
+
+async function getAnAccount(accountID){
+    let dbo = await getDB();
+    let result = await dbo.collection(USER_TABLE_NAME).findOne({_id: accountID})
+    return result;
+}
+
+async function updateAccount(accountID,account){
+    let dbo = await getDB();
+    let result = await dbo.collection(USER_TABLE_NAME).updateOne({_id: accountID},{$set : account})
+    return result;
+}
+
 const USER_TABLE_NAME = "Users"
 const IDEA_TABLE_NAME = "Ideas"
-
-module.exports = {insertObject,checkUserRole,checkUserLogin,USER_TABLE_NAME,IDEA_TABLE_NAME}
+const CATEGORY_TABLE_NAME = "Categories"
+const ROLE_TABLE_NAME = "Roles"
+module.exports = {getDB,insertObject,getAccount,getAllDocumentFromCollection,getAnAccount,updateAccount,checkUserRole,checkUserLogin,USER_TABLE_NAME,IDEA_TABLE_NAME,CATEGORY_TABLE_NAME,ROLE_TABLE_NAME}

@@ -48,8 +48,9 @@
                     </div>
                     <div class="login__decentralization">
                         <select name="Role" class="decentralization">                   
-                            <option value="Tester">Tester</option>
-                            <option value="Admin">Admin</option>
+                            {{#each roles}}
+                                <option value="{{name}}">{{name}}</option>
+                            {{/each}}
                         </select>
                         <div class="checkbox">
                             <input type="checkbox" name="" id="remember-me">

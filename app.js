@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const session = require('express-session')
 app.use(session({ secret: '124447yd@@$%%#', cookie: { maxAge: 60000 }, saveUninitialized: false, resave: false }))
-const {insertObject,checkUserRole,checkUserLogin,USER_TABLE_NAME} = require('./databaseHandler')
+const {getAllDocumentFromCollection,checkUserRole,checkUserLogin,ROLE_TABLE_NAME} = require('./databaseHandler')
 
 
 
@@ -17,6 +17,12 @@ const adminController = require('./controllers/admin')
 app.use('/admin', adminController)
 const testerController = require('./controllers/tester')
 app.use('/tester', testerController)
+const staffController = require('./controllers/staff')
+app.use('/staff', staffController)
+const qamanagerController = require('./controllers/qamanager')
+app.use('/qamanagemer', qamanagerController)
+const qacoordinatorController = require('./controllers/qacoordinator')
+app.use('/qacoordinator', qacoordinatorController)
 
 
 app.post("/login", async(req, res) => {
@@ -61,28 +67,22 @@ app.post("/login", async(req, res) => {
 })
 
 
-app.post('/register',(req,res)=>{
-    const name = req.body.txtName
-    const role = req.body.Role
-    const pass= req.body.txtPassword
-
-    const objectToInsert = {
-        userName: name,
-        role:role,
-        password: pass
-    }
-    insertObject(USER_TABLE_NAME,objectToInsert)
-    res.render('home')
+app.get('/login', async(req,res)=>{
+    const results = await getAllDocumentFromCollection(ROLE_TABLE_NAME)
+    console.log(results)
+    res.render('login',{"roles":results})
 })
+function nocache(req, res, next) {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+}
 
-app.get('/login',(req,res)=>{
-    res.render('login')
+app.get("/logout", (req, res) => {
+    req.session.user = null
+    res.redirect("/")
 })
-
-app.get('/register',(req,res)=>{
-    res.render('register')
-})
-
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT)
