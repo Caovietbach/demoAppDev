@@ -2,11 +2,16 @@ const express = require('express')
 const async = require('hbs/lib/async')
 const {ObjectId} = require('bson')
 const router = express.Router()
-const {getDB,insertObject,getAllDocumentFromCollection,getAccount,checkUserRole,ROLE_TABLE_NAME,USER_TABLE_NAME,IDEA_TABLE_NAME,getAnAccount,updateAccount,} = require('../databaseHandler')
-
+const {getDB,insertObject,getAnIdea,getAllDocumentFromCollection,getAccount,updateIdeaLikeCount,
+    checkUserLike,checkUserEmale,checkUserDislike, getAEvent,
+    ROLE_TABLE_NAME,USER_TABLE_NAME,IDEA_TABLE_NAME,POSTLIKE_TABLE_NAME,POSTDISLIKE_TABLE_NAME,COMMENT_TABLE_NAME,EVENT_TABLE_NAME,DEPARTMENT_TABLE_NAME
+    ,getAnAccount,updateAccount, getIdeaFeedback,} = require('../databaseHandler')
 
 function requiresLoginAdmin(req,res,next){
     if(req.session.user){
+        if(req.session.user.role != "Admin"){
+            res.redirect('/login');
+        }
         return next()
     }else{
         res.redirect('/login')
@@ -15,43 +20,131 @@ function requiresLoginAdmin(req,res,next){
 
 //POST
 
-router.post('/register',requiresLoginAdmin,(req,res)=>{
+router.post('/newAccount',requiresLoginAdmin, (req,res)=>{
     const name = req.body.txtName
+    const email = req.body.txtEmail
     const role = req.body.Role
+    const department = req.body.Department
     const pass= req.body.txtPassword
 
     const objectToInsert = {
         userName: name,
-        role:role,
+        email: email,
+        role: role,
+        department: department,
         password: pass
     }
     insertObject(USER_TABLE_NAME,objectToInsert)
-    res.render('admin/home')
-})
-
-router.get('/updateAccount', async (req,res)=>{
-    let id = req.query.id;
-    let objectId = ObjectId(id)
-    let account = await getAnAccount(objectId);
-    res.render('admin/updateAccount',{'account':account})
-})
-
-router.post('/doUpdateAccount', async (req,res)=>{
-    let id = req.body.id;
-    let objectId = ObjectId(id)
-    const username = req.body.txtUsername
-    const password = req.body.txtPassword
-    const role = req.body.Role
-    let account = {
-        'userName' : username,
-        'password' : password,
-        'role': role
-    }
-    await updateAccount(objectId,account)
     res.redirect('/admin/viewAccount')
 })
 
-router.get('/deleteAccount',async (req,res)=>{
+router.post('/doUpdateAccount', async (req,res)=>{
+    var id = req.body.id;
+    var objectId = ObjectId(id)
+    const username = req.body.txtUsername
+    const password = req.body.txtPassword
+    const email = req.body.txtEmail
+    const role = req.body.Role
+    var account = {
+        'userName' : username,
+        'password' : password,
+        'email': email,
+        'role': role
+    }
+    const check = await updateAccount(objectId,account)
+    console.log(check)
+    res.redirect('/admin/viewAccount')
+})
+
+router.post('/createEvent',async (req,res)=>{
+    const name = req.body.txtName
+    console.log(name)
+    const startDate = new Date(req.body.startDate).toISOString()
+    console.log(startDate)
+    const endDate = new Date(req.body.endDate).toISOString()
+    console.log(endDate)
+
+    const realtimeDate = new Date().getTime() 
+    console.log(realtimeDate)
+    const sDate = new Date(req.body.startDate).getTime()
+    const eDate = new Date(req.body.endDate).getDate()
+    if (sDate < realtimeDate){
+        const errorMessage = "The event start date is passed"
+        res.render('admin/createEvent',{errorName:errorMessage})
+        console.log("1")
+        return;
+    } else if(eDate > realtimeDate) {
+        const errorMessage = "The event end date is passed"
+        res.render('admin/createEvent',{errorName:errorMessage})
+        console.log("2")
+        return;
+    } else if (eDate > sDate) {
+        const errorMessage = "The event end date is earlier than the start date"
+        res.render('admin/createEvent',{errorName:errorMessage})
+        console.log("3")
+        return;
+    } else {
+        var event = {
+            'name' : name,
+            'startDate' : startDate,
+            'endDate' : endDate
+        }
+        const check = await insertObject(EVENT_TABLE_NAME,event)
+        console.log(check)
+        res.redirect('/admin/viewEvent')
+    }
+    
+})
+
+router.post('/editEvent', async (req,res)=>{
+    var id = req.body.id;
+    var objectId = ObjectId(id)
+    const name = req.body.TxTName
+    const startDate = Date.parse(req.body.StartDate)
+    const endDate = Date.parse(req.body.EndDate)
+    var event = {
+        'name' : name,
+        'startDate' : startDate,
+        'endDate' : endDate
+    }
+    var check = await editEvent(objectId, event)
+    console.log(check)
+    res.redirect('/admin/viewEvent')
+})
+
+router.post('/admin/sumbitComment', async (req,res)=>{
+    const content = req.body.TxTContent
+    
+})
+
+//GET
+
+router.get('/home',(req,res)=>{
+    res.render('admin/home')
+})
+
+
+////////////////////////////////////////////  ACCOUNT MANAGEMENT ///////////////////////////////////////////////
+
+router.get('/newAccount',requiresLoginAdmin, async(req,res)=>{
+    const results = await getAllDocumentFromCollection(ROLE_TABLE_NAME)
+    console.log(results)
+    const departments = await getAllDocumentFromCollection(DEPARTMENT_TABLE_NAME)
+    console.log(departments)
+    res.render('admin/newAccount',{'roles':results,'departments':departments})
+})
+
+router.get('/updateAccount',requiresLoginAdmin, async (req,res)=>{
+    var id = req.query.id;
+    var objectId = ObjectId(id)
+    var account = await getAnAccount(objectId);
+    const roles = await getAllDocumentFromCollection(ROLE_TABLE_NAME)
+    const departments = await getAllDocumentFromCollection(DEPARTMENT_TABLE_NAME)
+    console.log(departments)
+    res.render('admin/updateAccount',{'account':account},{'roles':roles},{'departments':departments})
+})
+
+router.get('/deleteAccount', requiresLoginAdmin,async (req,res)=>{
     let id = req.query.id
     console.log(id)
     let objectId = ObjectId(id);
@@ -60,28 +153,139 @@ router.get('/deleteAccount',async (req,res)=>{
     res.redirect('/admin/viewAccount')
 })
 
-
-
-
-//GET
-
-router.get('/register',requiresLoginAdmin, async(req,res)=>{
-    const results = await getAllDocumentFromCollection(ROLE_TABLE_NAME)
-    console.log(results)
-    res.render('register',{'roles':results})
-})
-router.get('/home',requiresLoginAdmin,(req,res)=>{
-    res.render('admin/home')
+router.get('/viewAccount', requiresLoginAdmin,async (req,res)=>{
+    let result = await getAccount();
+    res.render('admin/viewAccount',{'accounts': result})
 })
 
-router.get('/viewIdea',requiresLoginAdmin, async(req,res)=>{
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                                                    //++++//
+
+///////////////////////////////////////////////// LIKE ///////////////////////////////////////////////////////////////////////
+router.get('/likeIdea', async (req, res) => {
+    var id = req.query.id
+    var objectId = ObjectId(id)
+    var userEmail = req.session.user.email
+    var testLike = await checkUserLike(objectId,userEmail)
+    var testDislike = await checkUserDislike(objectId,userEmail)
+    if (testLike == 1){
+        res.redirect('/admin/viewIdea')
+    } else if (testDislike == 1){
+        var idea = await getAnIdea(objectId)
+        console.log("So like hien tai la " + idea.likeCount)
+        var count = parseInt(idea.likeCount)
+        var newLikeCount = count + 2
+        console.log("So like moi se la:" + newLikeCount)
+        await updateIdeaLikeCount(objectId,newLikeCount)
+        const userThatLike ={
+            'ideaID' : objectId,
+            'userEmail' : req.session.user.email
+        }
+        const dbo = await getDB()
+        await dbo.collection(POSTDISLIKE_TABLE_NAME).deleteOne({_id: objectId, userEmail: userEmail})
+        await insertObject(POSTLIKE_TABLE_NAME,userThatLike)
+        console.log("Success")
+        res.redirect('/admin/viewIdea')
+    } else {
+        var idea = await getAnIdea(objectId)
+        console.log("So like hien tai la " + idea.likeCount)
+        var count = parseInt(idea.likeCount)
+        var newLikeCount = count + 1
+        console.log("So like moi se la:" + newLikeCount)
+        await updateIdeaLikeCount(objectId,newLikeCount)
+        const userThatLike ={
+            'ideaID' : objectId,
+            'userEmail' : req.session.user.email
+        }
+        console.log(userThatLike)
+        await insertObject(POSTLIKE_TABLE_NAME,userThatLike)
+        console.log("Success")
+        res.redirect('/admin/viewIdea')
+    }
+})
+
+router.get('/dislikeIdea', async (req, res) => {
+    var id = req.query.id
+    console.log(id)
+    var objectId = ObjectId(id)
+    var userEmail = req.session.user.email
+    console.log(userEmail)
+    var testDislike = await checkUserDislike(objectId,userEmail)
+    var testLike = await checkUserLike(objectId,userEmail)
+    console.log(testDislike)
+    if (testDislike == 1) {
+        res.redirect('/admin/viewIdea')
+    } else if (testLike == 1){
+        var idea = await getAnIdea(objectId)
+        console.log("So like hien tai la " + idea.likeCount)
+        var count = parseInt(idea.likeCount)
+        var newLikeCount = count - 2
+        console.log("So like moi se la:" + newLikeCount)
+        await updateIdeaLikeCount(objectId,newLikeCount)
+        const userThatDislike ={
+            'ideaID' : objectId,
+            'userEmail' : req.session.user.email
+        }
+        const dbo = await getDB()
+        await dbo.collection(POSTLIKE_TABLE_NAME).deleteOne({_id: objectId, userEmail: userEmail})
+        await insertObject(POSTDISLIKE_TABLE_NAME,userThatDislike)
+        console.log("Success")
+        res.redirect('/admin/viewIdea')
+    } else {
+        var idea = await getAnIdea(objectId)
+        console.log("So like hien tai la: " + idea.likeCount)
+        var count = parseInt(idea.likeCount)
+        var newLikeCount = count - 1
+        console.log("So like moi se la: " + newLikeCount)
+        await updateIdeaLikeCount(objectId,newLikeCount)
+        const userThatDislike ={
+            'ideaID' : objectId,
+            'userEmail' : req.session.user.email
+        }
+        console.log(userThatDislike)
+        await insertObject(POSTDISLIKE_TABLE_NAME,userThatDislike)
+        console.log("Success")
+        res.redirect('/admin/viewIdea')
+    }
+})
+
+router.get('/viewIdea', async(req,res)=>{
     const results = await getAllDocumentFromCollection(IDEA_TABLE_NAME)
     res.render('admin/viewIdea',{'ideas':results})
 })
 
-router.get('/viewAccount', async (req,res)=>{
-    let result = await getAccount();
-    res.render('admin/viewAccount',{'accounts': result})
+///////////////////////////////////////////////////// COMMENT ////////////////////////////////////////////////////////////////////
+
+router.get('/viewComment', async (req, res) =>{
+    var id = req.query.id
+    console.log(id)
+    var objectId = ObjectId(id)
+    const results = await getIdeaFeedback( objectId)
+    res.render('admin/viewComment',{'comments':results})
 })
+
+router.get('/submitComment', async (req, res) =>{
+    res.render('admin/submitComment')
+})
+///////////////////////////////////////////////////// SET EVENT //////////////////////////////////////////////////////////////
+
+router.get('/createEvent', async (req, res) =>{
+    res.render('admin/createEvent')
+})
+
+
+router.get('/editEvent', async (req, res) =>{
+    var id = req.query.id;
+    var objectId = ObjectId(id)
+    var event = await getAEvent(objectId);
+    res.render('admin/editEvent',{'event':event})
+})
+
+router.get('/viewEvent',async (req, res) =>{
+    const results = await getAllDocumentFromCollection(EVENT_TABLE_NAME)
+    res.render('admin/viewEvent',{'events':results})
+})
+
 
 module.exports = router;

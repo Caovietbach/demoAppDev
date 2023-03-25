@@ -41,25 +41,20 @@
                         <h3>Login</h3>
                     </div>
                     <span style="color: red;">{{errorMsg}}</span>
+                    <span style="color: red;"></span>
                     <div class="card-body">
                         <input required="true" type="name" id="" class="form-control input-sm chat-input" placeholder="Enter your Username" name="txtName"/>
                         </br>
                         <input required="true" type="password" id="" class="form-control input-sm chat-input" placeholder="Enter your password" name = "txtPassword"/>
                     </div>
                     <div class="login__decentralization">
-                        <select name="Role" class="decentralization">                   
-                            {{#each roles}}
-                                <option value="{{name}}">{{name}}</option>
-                            {{/each}}
-                        </select>
                         <div class="checkbox">
                             <input type="checkbox" name="" id="remember-me">
                             <label for="remember-me"> Remember me</label>
                         </div>
                     </div>
                     <div class="card-footer text-muted">
-                        <input class="btn btn-primary" type="submit" value="Login">
-                        <div><a href="/register" class="ForgetPwd">Register</a> / <a href="#" class="ForgetPwd">Forget Password?</a></div>                                           
+                        <input class="btn btn-primary" type="submit" value="Login">              
                     </div>
                     
                 </div>

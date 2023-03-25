@@ -1,7 +1,7 @@
 const express = require('express')
 const async = require('hbs/lib/async')
 const router = express.Router()
-const {insertObject,checkUserRole,USER_TABLE_NAME,CATEGORY_TABLE_NAME,IDEA_TABLE_NAME} = require('../databaseHandler')
+const {insertObject,checkCategory,USER_TABLE_NAME,CATEGORY_TABLE_NAME,IDEA_TABLE_NAME} = require('../databaseHandler')
 
 
 //POST
@@ -11,7 +11,6 @@ router.post('/addCategory', async (req, res) => {
     const check = await checkCategory(nameInput)
     if (nameInput.length == 0){
         const errorMessage = "The loai phai co ten!";
-        const oldValues = {description:descriptionInput}
         res.render('qamanager/newCategory',{errorName:errorMessage})
         console.log("1")
         return;
@@ -38,27 +37,23 @@ router.get('/home',(req,res)=>{
 
 router.get('/viewCategory', async(req, res) => {
     const results = await getAllDocumentsFromCollection(CATEGORY_TABLE_NAME)
-    res.render('category',{category:results})
+    res.render('qamanager/viewCategory',{category:results})
 })
 
 router.get('/addCategory', async (req, res) => {
-    res.render('addCategory')
+    res.render('qamanager/addCategory')
 })
 
 router.get('/deleteCategory', async (req, res) => {
     const id = req.query.id
     await deleteDocumentById(CATEGORY_TABLE_NAME, id)
-    res.redirect('category')
+    res.redirect('qamanager/viewCategory')
 })
 
 router.get('/viewIdea', async (req, res) => {
     const results = await getAllDocumentsFromCollection(IDEA_TABLE_NAME)
-    res.render('viewIdea',{idea:results})
+    res.render('qamanager/viewIdea',{idea:results})
 })
-
-
-
-
 
 
 module.exports = router;

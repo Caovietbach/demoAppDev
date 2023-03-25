@@ -15,14 +15,27 @@
             <input type="text" name="txtUsername" class="form-control" value={{account.userName}}><br>
             Password: <br>
             <input type="text" name="txtPassword" class="form-control"value={{account.password}}><br>
+            Email: <br>
+            <input type="text" name="txtEmail" class="form-control" value={{account.email}}><br>
             Role: <br>
             <input type="text" class="form-control"value={{account.role}}><br>
             <br>
-            Change Role:
+            Change Role:<br>
             <select name="Role">
-                <option value="Admin">Admin</option>
-                <option value="Tester">Tester</option>
+                {{#each roles}}
+                    <option value="{{name}}">{{name}}</option>
+                {{/each}}
             </select>
+            <br>
+            Change Department: <br>
+            <select name="Department">
+                {{#each departments}}
+                    <option value="{{name}}">{{name}}</option>
+                {{/each}}
+            </select>
+            <br>
+
+
         <center>
             <button type="submit" class="btn btn-danger">Update</button>
         </center>
