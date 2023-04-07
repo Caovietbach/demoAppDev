@@ -12,7 +12,6 @@ app.use(express.urlencoded({ extended: true }))
 //app.use(express.bodyParser());
 
 
-
 app.get('/',(req,res)=>{
     res.render('home')
 })
@@ -51,6 +50,7 @@ app.post("/login", async(req, res) => {
                 }
                 console.log("Login with: ")
                 console.log(req.session.user)
+                req.session.save()
                 if (role == "Staff") {
                     res.redirect('/staff/home')
                 } 
